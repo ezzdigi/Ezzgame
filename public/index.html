@@ -94,7 +94,6 @@ button{font-family:inherit}
   <div class="brand-logo-fallback" style="display:grid">EzzDigi</div>
 </div>
 
-    <div class="tg-icon">TELEGRAM</div>
     <div class="tg-kicker">EZZDIGI GAMING</div>
     <h2>عضویت در کانال تلگرام</h2>
     <p>برای ثبت‌نام و ورود به پنل، ابتدا عضو کانال رسمی EzzDigi شوید.</p>
@@ -216,10 +215,21 @@ button{font-family:inherit}
 </div>
 <div id="toast" class="toast"></div>
 
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
 <script>
-const KEY='ezzdigi_mini_v1';
-let s=JSON.parse(localStorage.getItem(KEY)||'null')||{coins:0,energy:100,power:1,level:1,streak:0,xp:0};
+/* Telegram must be ready BEFORE we read the user id, so the game
+   state key and the membership check both use the real Telegram id. */
 const $=id=>document.getElementById(id);
+let telegramUser = null;
+let membershipVerified = false;
+if(window.Telegram?.WebApp){
+  Telegram.WebApp.ready(); Telegram.WebApp.expand();
+  telegramUser = Telegram.WebApp.initDataUnsafe?.user || null;
+}
+
+/* Per-user game state: each Telegram id gets its own save slot. */
+const KEY = telegramUser ? 'ezzdigi_mini_v1_'+telegramUser.id : 'ezzdigi_mini_v1_guest';
+let s=JSON.parse(localStorage.getItem(KEY)||'null')||{coins:0,energy:100,power:1,level:1,streak:0,xp:0};
 function save(){localStorage.setItem(KEY,JSON.stringify(s));render()}
 function render(){
  $('coins').textContent=s.coins.toLocaleString('en-US'); $('energy').textContent=Math.floor(s.energy);
@@ -244,9 +254,10 @@ document.querySelectorAll('.nav button').forEach(b=>b.addEventListener('click',(
 setInterval(()=>{if(s.energy<100){s.energy=Math.min(100,s.energy+1);render();save()}},3000);
 render();
 
-/* Telegram Mini App integration */
-let telegramUser = null;
-let membershipVerified = false;
+/* Telegram membership gate */
+// Set this to your deployed membership server, e.g. 'https://api.ezzdigi.com'
+const MEMBERSHIP_API_BASE = '';
+const MEMBERSHIP_KEY = telegramUser ? 'ezz_membership_'+telegramUser.id : 'ezz_membership_guest';
 
 function openGame(){
   membershipVerified = true;
@@ -257,26 +268,26 @@ function openGame(){
   showToast('🎮 خوش آمدی! بازی شروع شد');
 }
 
-/* Demo mode works in a normal browser.
-   REAL membership verification must be performed by your Bot backend
-   using Telegram Bot API getChatMember. */
+/* REAL membership verification: calls our Node.js server, which validates
+   Telegram initData and asks the Bot API (getChatMember) whether this exact
+   user is a member of @ezzdigii. Nothing about membership is trusted client-side. */
 async function verifyMembership(){
-  const status = document.getElementById('membershipStatus');
+  const status = $('membershipStatus');
   const button = document.querySelector('.tg-check');
   const tg = window.Telegram && Telegram.WebApp;
+
+  if (!tg || !tg.initData) {
+    status.textContent = 'این بخش فقط داخل اپلیکیشن تلگرام کار می‌کند. لطفاً از تلگرام باز کنید.';
+    showToast('برای بررسی عضویت باید از تلگرام وارد شوید');
+    return;
+  }
 
   button.disabled = true;
   button.textContent = 'در حال بررسی...';
   status.textContent = 'در حال بررسی عضویت شما در @ezzdigii...';
 
   try {
-    // Your server must expose this endpoint and verify Telegram initData
-    // with Bot API getChatMember for @ezzdigii.
-    if (!tg || !tg.initData) {
-      throw new Error('telegram_required');
-    }
-
-    const response = await fetch('/api/check-membership', {
+    const response = await fetch(MEMBERSHIP_API_BASE + '/api/check-membership', {
       method: 'POST',
       headers: {'Content-Type':'application/json'},
       body: JSON.stringify({initData: tg.initData})
@@ -286,41 +297,36 @@ async function verifyMembership(){
     const result = await response.json();
 
     if (result.member === true) {
-      localStorage.setItem('ezz_membership','verified');
-      document.getElementById('gate').style.display='none';
-      showToast('عضویت تأیید شد؛ خوش آمدید 🎮');
+      localStorage.setItem(MEMBERSHIP_KEY,'verified');
+      openGame();
       if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
     } else {
       status.textContent = 'هنوز عضو کانال نیستید. ابتدا عضو شوید و دوباره بررسی کنید.';
-      toast('عضویت کانال تأیید نشد');
+      showToast('عضویت کانال تأیید نشد');
     }
   } catch (e) {
     status.textContent = 'اتصال به سرور بررسی عضویت برقرار نشد؛ دوباره تلاش کنید.';
-    showToast('اتصال بررسی عضویت تنظیم نشده است');
+    showToast('اتصال به سرور بررسی عضویت برقرار نشد');
   } finally {
     button.disabled = false;
     button.textContent = '✓ بررسی عضویت و ورود';
   }
 }
 
-if(window.Telegram?.WebApp){
-  Telegram.WebApp.ready(); Telegram.WebApp.expand();
-  telegramUser = Telegram.WebApp.initDataUnsafe?.user || null;
-  if(telegramUser){
-    $('tgName').textContent=[telegramUser.first_name,telegramUser.last_name].filter(Boolean).join(' ')||'Ezz Gamer';
+if (window.Telegram?.WebApp) {
+  // Already verified this exact Telegram user before? Skip the gate.
+  if (localStorage.getItem(MEMBERSHIP_KEY) === 'verified') {
+    openGame();
   }
-}
-
-/* Demo: browser preview can enter the app. In production remove this and
-   call openGame() only after a successful server-side membership check. */
-if(!window.Telegram?.WebApp){
-  setTimeout(()=>{ $('gateMsg').textContent='نسخه پیش‌نمایش مرورگر فعال است.'; },300);
+} else {
+  /* Demo: browser preview (outside Telegram) can't call the real Bot API
+     check, so let it straight into the game for local testing only. */
+  $('membershipStatus').textContent = 'نسخه پیش‌نمایش مرورگر فعال است.';
   document.querySelector('.tg-check').onclick=()=>openGame();
 }
 
 /* Monthly ranking demo values; production API should supply real rank/top player. */
 </script>
-<script src="https://telegram.org/js/telegram-web-app.js"></script>
 <script>
 const ge=[["Cloudflare","https://www.cloudflare.com/cdn-cgi/trace"],["Google","https://www.google.com/generate_204"],["Microsoft","https://www.msftconnecttest.com/connecttest.txt"]];
 async function gl(u){let a=[];for(let i=0;i<4;i++){try{let t=performance.now();let r=await fetch(u+"?e="+Date.now()+i,{cache:"no-store",mode:"cors"});if(r.ok||r.status===204)a.push(performance.now()-t)}catch(e){}}if(!a.length)return null;let avg=a.reduce((x,y)=>x+y,0)/a.length,j=a.length>1?a.slice(1).reduce((x,y,i)=>x+Math.abs(y-a[i]),0)/(a.length-1):0;return{avg,j}}
