@@ -1,0 +1,338 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#07101f">
+<title>EzzDigi Gaming Mini App</title>
+<style>
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+:root{--bg:#050b16;--card:#0b1628;--card2:#101e33;--line:rgba(255,255,255,.09);--text:#f5f7fb;--muted:#91a0b8;--accent:#ff7a18;--accent2:#ffb15c;--green:#36d399}
+body{margin:0;background:radial-gradient(circle at 50% -10%,#182b49 0,#07101f 38%,#030711 100%);color:var(--text);font-family:system-ui,-apple-system,Segoe UI,Tahoma,sans-serif;min-height:100vh;overflow-x:hidden}
+body:before{content:"";position:fixed;inset:0;pointer-events:none;opacity:.25;background-image:radial-gradient(#fff 1px,transparent 1px);background-size:38px 38px}
+.app{width:min(100%,480px);margin:auto;padding:18px 14px 92px;position:relative}
+header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.brand{display:flex;gap:10px;align-items:center}.logo{width:44px;height:44px;border-radius:14px;background:linear-gradient(135deg,var(--accent),#ffb13b);display:grid;place-items:center;color:#111;font-weight:1000;box-shadow:0 8px 30px #ff7a1830}.brand b{display:block;font-size:18px}.brand span{color:var(--muted);font-size:11px}
+.iconbtn{border:1px solid var(--line);background:#ffffff08;color:#fff;border-radius:12px;width:42px;height:42px}
+.card{background:linear-gradient(145deg,#0d1a2de8,#081321e8);border:1px solid var(--line);border-radius:22px;box-shadow:0 18px 50px #0005;backdrop-filter:blur(14px)}
+.balance{text-align:center;padding:22px 16px 18px}.label{color:var(--muted);font-size:12px}.balance h1{font-size:39px;margin:6px 0 0;letter-spacing:.5px}.coin{color:var(--accent2)}
+.stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:18px}.stat{background:#ffffff06;border:1px solid var(--line);border-radius:14px;padding:10px 5px}.stat b{display:block;font-size:16px}.stat span{font-size:10px;color:var(--muted)}
+.energy{padding:14px 16px;margin-top:12px}.row{display:flex;justify-content:space-between;align-items:center;font-size:12px}.bar{height:8px;background:#ffffff0b;border-radius:99px;overflow:hidden;margin-top:9px}.bar i{display:block;height:100%;width:82%;background:linear-gradient(90deg,var(--accent),#ffd08a);border-radius:99px;transition:.3s}
+.taparea{text-align:center;padding:20px 0}.tap{width:210px;height:210px;border-radius:50%;border:0;background:radial-gradient(circle at 35% 25%,#ffd18c,#ff8b22 42%,#d74c00 100%);box-shadow:0 0 0 12px #ff7a1810,0 20px 55px #ff6a0038;color:#111;cursor:pointer;font-weight:1000;position:relative;transition:transform .08s}.tap:active{transform:scale(.94)}.tap small{display:block;font-size:12px;opacity:.7}.tap strong{display:block;font-size:34px}.tap em{font-style:normal;font-size:11px}
+.float{position:fixed;pointer-events:none;font-weight:900;color:#ffd18c;animation:up .75s ease-out forwards;z-index:20}@keyframes up{to{transform:translateY(-80px);opacity:0}}
+.section{margin-top:14px}.title{display:flex;justify-content:space-between;align-items:center;margin:0 3px 9px}.title h2{font-size:15px;margin:0}.title span{font-size:11px;color:var(--muted)}
+.missions{display:grid;gap:9px}.mission{display:flex;align-items:center;gap:11px;padding:13px}.micon{width:40px;height:40px;border-radius:13px;background:#ffffff08;display:grid;place-items:center;font-size:20px}.mission .grow{flex:1}.mission b{font-size:12px}.mission small{display:block;color:var(--muted);font-size:10px;margin-top:3px}.claim{border:1px solid #ff7a1840;background:#ff7a1814;color:#ffc184;padding:8px 10px;border-radius:10px;font-size:11px}.claim.done{opacity:.45}
+.nav{position:fixed;z-index:30;bottom:10px;left:50%;transform:translateX(-50%);width:min(calc(100% - 24px),452px);padding:8px;display:grid;grid-template-columns:repeat(5,1fr);background:#071221eF;border:1px solid var(--line);border-radius:20px;backdrop-filter:blur(18px);box-shadow:0 15px 50px #0008}.nav button{border:0;background:none;color:var(--muted);padding:9px 3px;border-radius:14px;font-size:10px}.nav button b{display:block;font-size:18px;margin-bottom:2px}.nav button.active{color:#fff;background:#ffffff09}
+.panel{display:none}.panel.active{display:block}
+.leader{display:flex;align-items:center;padding:13px;gap:10px}.rank{width:30px;text-align:center;font-weight:900;color:var(--accent2)}.avatar{width:38px;height:38px;border-radius:12px;background:#ffffff0c;display:grid;place-items:center}.leader .grow{flex:1}.leader small{color:var(--muted);font-size:10px}
+.profile{text-align:center;padding:25px}.bigavatar{width:72px;height:72px;margin:auto;border-radius:22px;background:linear-gradient(135deg,#ff8a21,#ffc46d);display:grid;place-items:center;color:#111;font-size:29px;font-weight:1000}.profile h2{margin:10px 0 2px}.profile p{margin:0;color:var(--muted);font-size:11px}.badges{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:18px}.badge{padding:13px 4px;border:1px solid var(--line);border-radius:14px;background:#ffffff05;font-size:11px}
+.toast{position:fixed;top:18px;left:50%;transform:translate(-50%,-20px);opacity:0;z-index:50;background:#12233a;border:1px solid var(--line);padding:11px 16px;border-radius:13px;font-size:12px;transition:.25s;box-shadow:0 12px 40px #0007}.toast.show{transform:translate(-50%,0);opacity:1}
+button{font-family:inherit}
+@media(max-width:360px){.tap{width:180px;height:180px}.tap strong{font-size:29px}}
+
+/* Telegram membership gate */
+.tg-gate{
+  position:fixed; inset:0; z-index:9999; display:flex; align-items:center;
+  justify-content:center; padding:22px;
+  background:rgba(3,8,18,.92); backdrop-filter:blur(16px);
+}
+.tg-card{
+  width:min(430px,100%); padding:28px 22px 22px; text-align:center;
+  border:1px solid rgba(255,255,255,.10); border-radius:28px;
+  background:linear-gradient(180deg,rgba(18,31,53,.96),rgba(8,16,29,.97));
+  box-shadow:0 25px 80px rgba(0,0,0,.48);
+}
+.tg-icon{
+  width:66px;height:66px;margin:0 auto 12px;display:grid;place-items:center;
+  border-radius:20px;font-size:31px;
+  background:linear-gradient(135deg,#ff9d2e,#ff6b00);
+  box-shadow:0 12px 32px rgba(255,132,24,.25);
+}
+.tg-kicker{font-size:11px;letter-spacing:2px;font-weight:800;opacity:.65}
+.tg-card h2{margin:7px 0 9px;font-size:25px}
+.tg-card p{margin:0 auto 18px;line-height:1.8;color:rgba(255,255,255,.72);font-size:13px}
+.tg-join{
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+  text-decoration:none;color:#fff;padding:15px 16px;margin-bottom:11px;
+  border-radius:17px;background:rgba(255,255,255,.07);
+  border:1px solid rgba(255,255,255,.10);transition:.2s;
+}
+.tg-join:hover{transform:translateY(-1px);background:rgba(255,255,255,.10)}
+.tg-join span{font-weight:800}.tg-join b{direction:ltr;color:#ffad55;font-size:13px}
+.tg-check{
+  width:100%;border:0;border-radius:17px;padding:15px;cursor:pointer;
+  color:#101010;font-weight:900;font-size:14px;
+  background:linear-gradient(135deg,#ffb45b,#ff7a18);
+  box-shadow:0 10px 28px rgba(255,122,24,.18);
+}
+.tg-status{margin:13px 0 5px;font-size:12px;color:rgba(255,255,255,.65)}
+.tg-card small{font-size:10px;color:rgba(255,255,255,.38)}
+
+
+.brand-logo-wrap{display:grid;place-items:center;margin:0 auto 12px}
+.brand-logo{width:86px;height:86px;object-fit:contain;border-radius:22px;filter:drop-shadow(0 10px 22px rgba(0,0,0,.3))}
+.brand-logo-fallback{width:110px;height:70px;place-items:center;border-radius:20px;background:#ff8a22;color:#111;font-weight:1000;font-size:22px;letter-spacing:.5px}
+
+
+.tg-icon{
+  width:120px;height:38px;margin:0 auto 12px;display:grid;place-items:center;
+  border-radius:12px;font-size:12px;letter-spacing:1.5px;font-weight:900;
+  background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.10);
+  color:rgba(255,255,255,.85);
+}
+.tg-check:disabled{opacity:.65;cursor:wait;transform:none}
+
+</style>
+</head>
+<body>
+<div class="app">
+<div id="gate" class="tg-gate">
+  <div class="tg-card">
+    
+<div class="brand-logo-wrap">
+  <img class="brand-logo" src="https://ezzdigi.com/favicon.png" alt="EzzDigi" onerror="this.style.display='none';this.nextElementSibling.style.display='grid'">
+  <div class="brand-logo-fallback" style="display:grid">EzzDigi</div>
+</div>
+
+    <div class="tg-kicker">EZZDIGI GAMING</div>
+    <h2>عضویت در کانال تلگرام</h2>
+    <p>برای ثبت‌نام و ورود به پنل، ابتدا عضو کانال رسمی EzzDigi شوید.</p>
+
+    <a class="tg-join" href="https://t.me/ezzdigii" target="_blank" rel="noopener">
+      <span>عضویت در کانال</span>
+      <b>@ezzdigii</b>
+    </a>
+
+    <button class="tg-check" onclick="verifyMembership()">
+      ✓ بررسی عضویت و ورود
+    </button>
+
+    <div class="tg-status" id="membershipStatus">
+      عضویت شما هنوز بررسی نشده است
+    </div>
+    <small>عضویت در کانال برای ثبت‌نام اجباری است.</small>
+  </div>
+</div>
+<header>
+  <div class="brand"><div class="logo">EZ</div><div><b>EzzDigi Gaming</b><span>Gaming Mini App</span></div></div>
+  <button class="iconbtn" onclick="showToast('پروفایل آماده است 🎮')">⚙️</button>
+</header>
+
+<main id="home" class="panel active">
+  <section class="card balance">
+    <div class="label">موجودی شما</div>
+    <h1><span id="coins">0</span> <span class="coin">EZZ</span></h1>
+    <div class="stats">
+      <div class="stat"><b id="level">1</b><span>LEVEL</span></div>
+      <div class="stat"><b id="power">1</b><span>TAP POWER</span></div>
+      <div class="stat"><b id="streak">0</b><span>STREAK 🔥</span></div>
+    </div>
+  </section>
+  <section class="card rankbox">
+    <div class="row"><span>🏆 رتبه شما در این ماه</span><b>#<span id="myRank">1</span></b></div>
+    <div style="margin-top:7px;color:var(--muted);font-size:10px">👑 نفر اول: <span id="topPlayer">ShadowX</span> • <span id="topScore">245,000</span> EZZ</div>
+  </section>
+  <section class="card energy">
+    <div class="row"><span>⚡ انرژی</span><b><span id="energy">100</span>/100</b></div>
+    <div class="bar"><i id="energybar"></i></div>
+  </section>
+  <div class="taparea">
+    <button class="tap" id="tap"><small>TOUCH TO EARN</small><strong>+<span id="tapPower">1</span></strong><em>EZZ</em></button>
+    <div class="label" style="margin-top:12px">هر لمس امتیاز می‌دهد • انرژی به‌مرور برمی‌گردد</div>
+  </div>
+  <section class="section">
+    <div class="title"><h2>🎯 مأموریت‌ها</h2><span>پاداش رایگان</span></div>
+    <div class="missions">
+      <div class="card mission"><div class="micon">🎁</div><div class="grow"><b>پاداش روزانه</b><small>ورود روزانه به Mini App</small></div><button class="claim" onclick="claim(this,100)">+100 EZZ</button></div>
+      <div class="card mission"><div class="micon">🌐</div><div class="grow"><b>Gaming DNS Test</b><small>یک تست شبکه انجام بده</small></div><button class="claim" onclick="claim(this,150)">+150 EZZ</button></div>
+      <div class="card mission"><div class="micon">👥</div><div class="grow"><b>Invite Gamer</b><small>یک دوست گیمر دعوت کن</small></div><button class="claim" onclick="claim(this,250)">+250 EZZ</button></div>
+    </div>
+  </section>
+</main>
+
+<main id="boost" class="panel">
+  <div class="title"><h2>🚀 Boost Center</h2><span>ارتقا بده</span></div>
+  <div class="missions">
+    <div class="card mission"><div class="micon">👆</div><div class="grow"><b>Tap Power +1</b><small>قدرت هر Tap بیشتر می‌شود</small></div><button class="claim" onclick="upgradePower()">ارتقا</button></div>
+    <div class="card mission"><div class="micon">⚡</div><div class="grow"><b>Energy Max</b><small>ظرفیت انرژی را افزایش بده</small></div><button class="claim" onclick="showToast('این Boost در نسخه بعدی فعال می‌شود 🚀')">Soon</button></div>
+    <div class="card mission"><div class="micon">🤖</div><div class="grow"><b>Auto Earn</b><small>کسب امتیاز خودکار</small></div><button class="claim" onclick="showToast('Auto Earn به‌زودی فعال می‌شود')">Soon</button></div>
+  </div>
+</main>
+
+<main id="rank" class="panel">
+  <div class="title"><h2>🏆 Leaderboard</h2><span>Top Gamers</span></div>
+  <div class="card">
+    <div class="leader"><div class="rank">1</div><div class="avatar">👑</div><div class="grow"><b>ShadowX</b><small>Level 24</small></div><b>245K</b></div>
+    <div class="leader"><div class="rank">2</div><div class="avatar">🔥</div><div class="grow"><b>GamerPro</b><small>Level 21</small></div><b>198K</b></div>
+    <div class="leader"><div class="rank">3</div><div class="avatar">⚡</div><div class="grow"><b>EzzPlayer</b><small>Level 19</small></div><b>176K</b></div>
+    <div class="leader"><div class="rank">4</div><div class="avatar">🎯</div><div class="grow"><b>CODM_King</b><small>Level 17</small></div><b>142K</b></div>
+    <div class="leader"><div class="rank">5</div><div class="avatar">💎</div><div class="grow"><b>NightWolf</b><small>Level 15</small></div><b>119K</b></div>
+  </div>
+</main>
+
+<main id="gaming" class="panel">
+<div class="title"><h2>⚡ EzzDigi Gaming Connect</h2><span>Universal Gaming</span></div>
+<section class="card" style="padding:16px">
+<div class="stats">
+<div class="stat"><b id="gPing">--</b><span>PING ms</span></div>
+<div class="stat"><b id="gJitter">--</b><span>JITTER ms</span></div>
+<div class="stat"><b id="gLoss">--</b><span>LOSS %</span></div>
+</div>
+<div class="stats" style="margin-top:8px">
+<div class="stat"><b id="gDown">--</b><span>DOWNLOAD</span></div>
+<div class="stat"><b id="gUp">--</b><span>UPLOAD</span></div>
+<div class="stat"><b id="gRoute">--</b><span>BEST ROUTE</span></div>
+</div>
+<div class="bar" style="margin-top:13px"><i id="gBar" style="width:0%"></i></div>
+<div id="gStatus" class="label" style="margin:9px 0 11px">آماده تست اتصال</div>
+<button class="primary" id="gTest" style="width:100%;background:var(--accent);color:#111">⚡ تست هوشمند شبکه</button>
+<button class="secondary" id="gConnect" style="width:100%;margin-top:8px">🔒 اتصال VPN / DNS</button>
+<div class="note">تست شبکه و سرعت در مرورگر انجام می‌شود. فعال‌سازی VPN/DNS سراسری گوشی از HTML به‌تنهایی ممکن نیست و نیاز به اپ اندروید یا سرویس VPN دارد.</div>
+</section>
+</main>
+
+<main id="profile" class="panel">
+  <div class="card profile">
+    <div class="bigavatar">EZ</div>
+    <h2 id="tgName">Ezz Gamer</h2><p>@username</p>
+    <div class="badges">
+      <div class="badge">🔥<br>Tap Master</div><div class="badge">🎮<br>Gamer</div><div class="badge">🏆<br>Rookie</div>
+    </div>
+  </div>
+  <div class="card energy" style="margin-top:12px">
+    <div class="row"><span>📊 XP Progress</span><b id="xp">0 / 1000</b></div>
+    <div class="bar"><i id="xpbar" style="width:0%"></i></div>
+  </div>
+  <div class="card mission" style="margin-top:12px"><div class="micon">🔗</div><div class="grow"><b>دعوت دوستان</b><small>لینک دعوت خودت را به دوستان گیمر بفرست</small></div><button class="claim" onclick="invite()">اشتراک</button></div>
+</main>
+</div>
+
+<div class="nav">
+  <button class="active" data-panel="home"><b>🎮</b>بازی</button>
+  <button data-panel="boost"><b>🚀</b>Boost</button>
+  <button data-panel="rank"><b>🏆</b>رتبه</button>
+  <button data-panel="gaming"><b>⚡</b>اتصال</button><button data-panel="profile"><b>👤</b>پروفایل</button>
+</div>
+<div id="toast" class="toast"></div>
+
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<script>
+/* Telegram must be ready BEFORE we read the user id, so the game
+   state key and the membership check both use the real Telegram id. */
+const $=id=>document.getElementById(id);
+let telegramUser = null;
+let membershipVerified = false;
+if(window.Telegram?.WebApp){
+  Telegram.WebApp.ready(); Telegram.WebApp.expand();
+  telegramUser = Telegram.WebApp.initDataUnsafe?.user || null;
+}
+
+/* Per-user game state: each Telegram id gets its own save slot. */
+const KEY = telegramUser ? 'ezzdigi_mini_v1_'+telegramUser.id : 'ezzdigi_mini_v1_guest';
+let s=JSON.parse(localStorage.getItem(KEY)||'null')||{coins:0,energy:100,power:1,level:1,streak:0,xp:0};
+function save(){localStorage.setItem(KEY,JSON.stringify(s));render()}
+function render(){
+ $('coins').textContent=s.coins.toLocaleString('en-US'); $('energy').textContent=Math.floor(s.energy);
+ $('power').textContent=s.power; $('tapPower').textContent=s.power; $('level').textContent=s.level;
+ $('streak').textContent=s.streak; $('energybar').style.width=s.energy+'%';
+ let xp=s.xp%1000; $('xp').textContent=xp+' / 1000'; $('xpbar').style.width=(xp/10)+'%';
+}
+function showToast(t){const x=$('toast');x.textContent=t;x.classList.add('show');clearTimeout(window.tt);window.tt=setTimeout(()=>x.classList.remove('show'),1700)}
+$('tap').addEventListener('pointerdown',e=>{
+ if(s.energy<s.power){showToast('⚡ انرژی کافی نیست');return}
+ s.coins+=s.power;s.energy=Math.max(0,s.energy-s.power);s.xp+=s.power;
+ if(s.coins>=s.level*1000){s.level++;s.streak++;showToast('🎉 Level Up!')}
+ const f=document.createElement('div');f.className='float';f.textContent='+'+s.power+' EZZ';f.style.left=(e.clientX-18)+'px';f.style.top=(e.clientY-20)+'px';document.body.appendChild(f);setTimeout(()=>f.remove(),800);save()
+});
+function claim(btn,n){if(btn.classList.contains('done'))return;s.coins+=n;s.xp+=n;btn.classList.add('done');btn.textContent='✓ Claimed';showToast('🎁 +'+n+' EZZ دریافت شد');save()}
+function upgradePower(){const cost=s.power*500;if(s.coins<cost){showToast('💰 حداقل '+cost+' EZZ لازم است');return}s.coins-=cost;s.power++;showToast('🚀 Tap Power ارتقا یافت');save()}
+function invite(){if(navigator.share)navigator.share({title:'EzzDigi Gaming',text:'Join EzzDigi Gaming Mini App!'}).catch(()=>{});else{navigator.clipboard?.writeText(location.href);showToast('🔗 لینک دعوت کپی شد')}}
+document.querySelectorAll('.nav button').forEach(b=>b.addEventListener('click',()=>{
+ document.querySelectorAll('.nav button').forEach(x=>x.classList.remove('active'));b.classList.add('active');
+ document.querySelectorAll('.panel').forEach(x=>x.classList.remove('active'));$(b.dataset.panel).classList.add('active');window.scrollTo({top:0,behavior:'smooth'})
+}));
+setInterval(()=>{if(s.energy<100){s.energy=Math.min(100,s.energy+1);render();save()}},3000);
+render();
+
+/* Telegram membership gate */
+// Set this to your deployed membership server, e.g. 'https://api.ezzdigi.com'
+const MEMBERSHIP_API_BASE = '';
+const MEMBERSHIP_KEY = telegramUser ? 'ezz_membership_'+telegramUser.id : 'ezz_membership_guest';
+
+function openGame(){
+  membershipVerified = true;
+  $('gate').style.display='none';
+  if(telegramUser){
+    $('tgName').textContent=[telegramUser.first_name,telegramUser.last_name].filter(Boolean).join(' ')||'Ezz Gamer';
+  }
+  showToast('🎮 خوش آمدی! بازی شروع شد');
+}
+
+/* REAL membership verification: calls our Node.js server, which validates
+   Telegram initData and asks the Bot API (getChatMember) whether this exact
+   user is a member of @ezzdigii. Nothing about membership is trusted client-side. */
+async function verifyMembership(){
+  const status = $('membershipStatus');
+  const button = document.querySelector('.tg-check');
+  const tg = window.Telegram && Telegram.WebApp;
+
+  if (!tg || !tg.initData) {
+    status.textContent = 'این بخش فقط داخل اپلیکیشن تلگرام کار می‌کند. لطفاً از تلگرام باز کنید.';
+    showToast('برای بررسی عضویت باید از تلگرام وارد شوید');
+    return;
+  }
+
+  button.disabled = true;
+  button.textContent = 'در حال بررسی...';
+  status.textContent = 'در حال بررسی عضویت شما در @ezzdigii...';
+
+  try {
+    const response = await fetch(MEMBERSHIP_API_BASE + '/api/check-membership', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({initData: tg.initData})
+    });
+
+    if (!response.ok) throw new Error('server_error');
+    const result = await response.json();
+
+    if (result.member === true) {
+      localStorage.setItem(MEMBERSHIP_KEY,'verified');
+      openGame();
+      if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
+    } else {
+      status.textContent = 'هنوز عضو کانال نیستید. ابتدا عضو شوید و دوباره بررسی کنید.';
+      showToast('عضویت کانال تأیید نشد');
+    }
+  } catch (e) {
+    status.textContent = 'اتصال به سرور بررسی عضویت برقرار نشد؛ دوباره تلاش کنید.';
+    showToast('اتصال به سرور بررسی عضویت برقرار نشد');
+  } finally {
+    button.disabled = false;
+    button.textContent = '✓ بررسی عضویت و ورود';
+  }
+}
+
+if (window.Telegram?.WebApp) {
+  // Already verified this exact Telegram user before? Skip the gate.
+  if (localStorage.getItem(MEMBERSHIP_KEY) === 'verified') {
+    openGame();
+  }
+} else {
+  /* Demo: browser preview (outside Telegram) can't call the real Bot API
+     check, so let it straight into the game for local testing only. */
+  $('membershipStatus').textContent = 'نسخه پیش‌نمایش مرورگر فعال است.';
+  document.querySelector('.tg-check').onclick=()=>openGame();
+}
+
+/* Monthly ranking demo values; production API should supply real rank/top player. */
+</script>
+<script>
+const ge=[["Cloudflare","https://www.cloudflare.com/cdn-cgi/trace"],["Google","https://www.google.com/generate_204"],["Microsoft","https://www.msftconnecttest.com/connecttest.txt"]];
+async function gl(u){let a=[];for(let i=0;i<4;i++){try{let t=performance.now();let r=await fetch(u+"?e="+Date.now()+i,{cache:"no-store",mode:"cors"});if(r.ok||r.status===204)a.push(performance.now()-t)}catch(e){}}if(!a.length)return null;let avg=a.reduce((x,y)=>x+y,0)/a.length,j=a.length>1?a.slice(1).reduce((x,y,i)=>x+Math.abs(y-a[i]),0)/(a.length-1):0;return{avg,j}}
+async function gd(){let n=3000000,t=performance.now(),r=await fetch("https://speed.cloudflare.com/__down?bytes="+n+"&e="+Date.now(),{cache:"no-store"});await r.arrayBuffer();return n*8/((performance.now()-t)/1000)/1e6}
+async function gu(){let n=1000000,t=performance.now();await fetch("https://speed.cloudflare.com/__up?e="+Date.now(),{method:"POST",body:new Uint8Array(n),cache:"no-store"});return n*8/((performance.now()-t)/1000)/1e6}
+$("gTest").onclick=async()=>{gTest.disabled=true;gStatus.textContent="در حال تست مسیرها…";gBar.style.width="15%";let a=[];for(let i=0;i<ge.length;i++){let x=await gl(ge[i][1]);if(x)a.push({n:ge[i][0],...x});gBar.style.width=(20+i*18)+"%"}a.sort((x,y)=>x.avg-y.avg);let b=a[0];gPing.textContent=b?Math.round(b.avg):"--";gJitter.textContent=b?Math.round(b.j):"--";gLoss.textContent=Math.round((ge.length-a.length)/ge.length*100);gRoute.textContent=b?b.n:"--";try{gDown.textContent=(await gd()).toFixed(1)}catch(e){gDown.textContent="--"}gBar.style.width="82%";try{gUp.textContent=(await gu()).toFixed(1)}catch(e){gUp.textContent="--"}gBar.style.width="100%";gStatus.textContent=b?"بهترین مسیر قابل اندازه‌گیری: "+b.n:"پاسخ معتبر پیدا نشد";gTest.disabled=false};
+$("gConnect").onclick=()=>showToast("🔒 اتصال واقعی VPN/DNS از HTML ممکن نیست؛ برای آن نسخه Android EzzDigi را استفاده کن");
+</script></body>
+</html>
