@@ -260,7 +260,7 @@ function openGame(){
 /* Demo mode works in a normal browser.
    REAL membership verification must be performed by your Bot backend
    using Telegram Bot API getChatMember. */
-async async function verifyMembership(){
+async function verifyMembership(){
   const status = document.getElementById('membershipStatus');
   const button = document.querySelector('.tg-check');
   const tg = window.Telegram && Telegram.WebApp;
@@ -288,7 +288,7 @@ async async function verifyMembership(){
     if (result.member === true) {
       localStorage.setItem('ezz_membership','verified');
       document.getElementById('gate').style.display='none';
-      toast('عضویت تأیید شد؛ خوش آمدید 🎮');
+      showToast('عضویت تأیید شد؛ خوش آمدید 🎮');
       if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
     } else {
       status.textContent = 'هنوز عضو کانال نیستید. ابتدا عضو شوید و دوباره بررسی کنید.';
@@ -296,7 +296,7 @@ async async function verifyMembership(){
     }
   } catch (e) {
     status.textContent = 'اتصال به سرور بررسی عضویت برقرار نشد؛ دوباره تلاش کنید.';
-    toast('اتصال بررسی عضویت تنظیم نشده است');
+    showToast('اتصال بررسی عضویت تنظیم نشده است');
   } finally {
     button.disabled = false;
     button.textContent = '✓ بررسی عضویت و ورود';
@@ -315,7 +315,7 @@ if(window.Telegram?.WebApp){
    call openGame() only after a successful server-side membership check. */
 if(!window.Telegram?.WebApp){
   setTimeout(()=>{ $('gateMsg').textContent='نسخه پیش‌نمایش مرورگر فعال است.'; },300);
-  document.querySelector('.verify').onclick=()=>openGame();
+  document.querySelector('.tg-check').onclick=()=>openGame();
 }
 
 /* Monthly ranking demo values; production API should supply real rank/top player. */
