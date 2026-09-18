@@ -1,12 +1,20 @@
 {
-  "$schema": "node_modules/wrangler/config-schema.json",
   "name": "ezzgame",
   "main": "ezzgame-worker.js",
   "compatibility_date": "2026-09-18",
-  "assets": { "directory": "./public", "binding": "ASSETS" },
-  "d1_databases": [{
-    "binding": "DB",
-    "database_name": "d1-ezzgame-db",
-    "database_id": "70b2e84a-2268-4c6d-b3d5-efc5d457a641"
-  }]
+  "assets": {
+    "directory": "./public",
+    "binding": "ASSETS"
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "d1-ezzgame-db",
+      "database_id": "70b2e84a-2268-4c6d-b3d5-efc5d457a641"
+    }
+  ],
+  "vars": {
+    "CHANNEL_USERNAME": "@ezzdigii",
+    "INITDATA_MAX_AGE_SECONDS": 86400
+  }
 }
