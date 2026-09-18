@@ -383,7 +383,7 @@ async function recheckMembership(){
   const tg = window.Telegram && Telegram.WebApp;
   if(!tg || !tg.initData) return;
   try{
-    const response = await fetch(MEMBERSHIP_API_BASE + '/api/check-membership', {
+    const response = await fetch(MEMBERSHIP_API_BASE + '/ezzgame.rnkoroush.workers.dev', {
       method: 'POST',
       headers: {'Content-Type':'application/json'},
       body: JSON.stringify({initData: tg.initData})
