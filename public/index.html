@@ -131,7 +131,7 @@ button{font-family:inherit}
   </section>
   <section class="card rankbox">
     <div class="row"><span>🏆 امتیاز شما این ماه</span><b><span id="myScore">0</span> EZZ</b></div>
-    <div style="margin-top:7px;color:var(--muted);font-size:10px">رتبه‌بندی کامل پس از اتصال به سرور نمایش داده می‌شود</div>
+    <div style="margin-top:7px;color:var(--muted);font-size:10px" id="myRankNote">رتبه‌بندی کامل پس از اتصال به سرور نمایش داده می‌شود</div>
   </section>
   <section class="card energy">
     <div class="row"><span>⚡ انرژی</span><b><span id="energy">100</span>/100</b></div>
@@ -166,10 +166,14 @@ button{font-family:inherit}
 
 <main id="rank" class="panel">
   <div class="title"><h2>🏆 Leaderboard</h2><span>Top Gamers</span></div>
-  <div class="card">
+  <div class="card rankbox" style="margin-bottom:12px">
+    <div class="row"><span>رتبه شما</span><b id="rkYouRank">—</b></div>
+    <div class="row" style="margin-top:6px"><span id="rkYouName">Ezz Gamer</span><b id="rkYouScore">0 EZZ</b></div>
+  </div>
+  <div class="card" id="leaderboardCard">
     <div class="leader"><div class="rank">🎮</div><div class="avatar">👤</div><div class="grow"><b id="rkName">Ezz Gamer</b><small id="rkLevel">Level 1</small></div><b id="rkScore">0</b></div>
   </div>
-  <div style="margin-top:10px;color:var(--muted);font-size:10px;text-align:center">رتبه‌بندی کامل بازیکنان پس از اتصال به سرور فعال می‌شود</div>
+  <div id="leaderboardNote" style="margin-top:10px;color:var(--muted);font-size:10px;text-align:center">رتبه‌بندی کامل بازیکنان پس از اتصال به سرور فعال می‌شود</div>
 </main>
 
 <main id="rewards" class="panel">
@@ -253,7 +257,7 @@ if(window.Telegram?.WebApp){
 /* Per-user game state: each Telegram id gets its own save slot. */
 const KEY = telegramUser ? 'ezzdigi_mini_v1_'+telegramUser.id : 'ezzdigi_mini_v1_guest';
 let s=JSON.parse(localStorage.getItem(KEY)||'null')||{coins:0,energy:100,power:1,level:1,streak:0,xp:0};
-function save(){localStorage.setItem(KEY,JSON.stringify(s));render()}
+function save(){localStorage.setItem(KEY,JSON.stringify(s));render();syncScore()}
 function render(){
  $('coins').textContent=s.coins.toLocaleString('en-US'); $('energy').textContent=Math.floor(s.energy);
  $('power').textContent=s.power; $('tapPower').textContent=s.power; $('level').textContent=s.level;
@@ -272,16 +276,63 @@ $('tap').addEventListener('pointerdown',e=>{
 function claim(btn,n){if(btn.classList.contains('done'))return;s.coins+=n;s.xp+=n;btn.classList.add('done');btn.textContent='✓ Claimed';showToast('🎁 +'+n+' EZZ دریافت شد');save()}
 function upgradePower(){const cost=s.power*500;if(s.coins<cost){showToast('💰 حداقل '+cost+' EZZ لازم است');return}s.coins-=cost;s.power++;showToast('🚀 Tap Power ارتقا یافت');save()}
 function invite(){const inviteLink='https://t.me/ezzdigi_game_bot';if(navigator.share)navigator.share({title:'EzzDigi Gaming',text:'Join EzzDigi Gaming Mini App!',url:inviteLink}).catch(()=>{});else{navigator.clipboard?.writeText(inviteLink);showToast('🔗 لینک دعوت کپی شد')}}
+
+function escapeHtml(str){return String(str??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+
+/* Pushes the player's current score to the shared leaderboard server,
+   throttled so it fires at most once every 8s even if save() is called
+   rapidly (e.g. fast tapping). No-op outside Telegram or before the
+   server is configured/deployed. */
+let _lastSync=0, _syncTimer=null;
+function syncScore(){
+  const tg=window.Telegram&&Telegram.WebApp;
+  if(!API_BASE||!tg||!tg.initData) return;
+  const now=Date.now();
+  if(now-_lastSync<8000){clearTimeout(_syncTimer);_syncTimer=setTimeout(syncScore,8000-(now-_lastSync));return}
+  _lastSync=now;
+  fetch(API_BASE+'/api/score/sync',{
+    method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({initData:tg.initData,coins:s.coins,level:s.level,name:s.gameName})
+  }).catch(()=>{});
+}
+
+/* Pulls the real shared leaderboard (top players + this user's own rank)
+   from the server. Falls back to the local-only view already in the HTML
+   when the server isn't configured/reachable. */
+async function fetchLeaderboard(){
+  if(!API_BASE) return;
+  const tg=window.Telegram&&Telegram.WebApp;
+  try{
+    const q=(tg&&tg.initData)?('?initData='+encodeURIComponent(tg.initData)):'';
+    const res=await fetch(API_BASE+'/api/leaderboard'+q);
+    if(!res.ok) throw new Error('bad_status');
+    const data=await res.json();
+    if(Array.isArray(data.top)&&data.top.length){
+      $('leaderboardCard').innerHTML=data.top.map((p,i)=>
+        `<div class="leader"><div class="rank">${i+1}</div><div class="avatar">${i===0?'👑':i===1?'🥈':i===2?'🥉':'🎮'}</div><div class="grow"><b>${escapeHtml(p.name)}</b><small>Level ${p.level}</small></div><b>${Number(p.coins).toLocaleString('en-US')}</b></div>`
+      ).join('');
+      $('leaderboardNote').textContent='';
+    }
+    if(data.you){
+      $('rkYouRank').textContent=data.you.rank?('#'+data.you.rank):'—';
+      $('rkYouName').textContent=data.you.name||s.gameName||'Ezz Gamer';
+      $('rkYouScore').textContent=Number(data.you.coins).toLocaleString('en-US')+' EZZ';
+      $('myRankNote').textContent=data.you.rank?('رتبه شما در بین همه‌ی بازیکنان: #'+data.you.rank):'رتبه شما: —';
+    }
+  }catch(e){ /* keep the local-only fallback already shown */ }
+}
 document.querySelectorAll('.nav button').forEach(b=>b.addEventListener('click',()=>{
  document.querySelectorAll('.nav button').forEach(x=>x.classList.remove('active'));b.classList.add('active');
  document.querySelectorAll('.panel').forEach(x=>x.classList.remove('active'));$(b.dataset.panel).classList.add('active');window.scrollTo({top:0,behavior:'smooth'})
+ if(b.dataset.panel==='rank') fetchLeaderboard();
 }));
 setInterval(()=>{if(s.energy<100){s.energy=Math.min(100,s.energy+1);render();save()}},3000);
 render();
 
-/* Telegram membership gate */
-// Set this to your deployed membership server, e.g. 'https://api.ezzdigi.com'
-const MEMBERSHIP_API_BASE = '';
+/* Telegram membership gate + shared leaderboard server */
+// Set this to your deployed server, e.g. 'https://your-app-name.onrender.com'
+// (same server handles /api/check-membership, /api/score/sync, /api/leaderboard)
+const API_BASE = 'https://ezzgame.rnkoroush.workers.dev';
 const MEMBERSHIP_KEY = telegramUser ? 'ezz_membership_'+telegramUser.id : 'ezz_membership_guest';
 
 function openGame(){
@@ -302,6 +353,8 @@ function openGame(){
       $('pfPhoneRow').style.display='none';
     }
   }
+  syncScore();
+  fetchLeaderboard();
   showToast('🎮 خوش آمدی! بازی شروع شد');
 }
 
@@ -346,7 +399,7 @@ async function verifyMembership(){
   status.textContent = 'در حال بررسی عضویت شما در @ezzdigii...';
 
   try {
-    const response = await fetch(MEMBERSHIP_API_BASE + '/api/check-membership', {
+    const response = await fetch(API_BASE + '/api/check-membership', {
       method: 'POST',
       headers: {'Content-Type':'application/json'},
       body: JSON.stringify({initData: tg.initData})
@@ -383,7 +436,7 @@ async function recheckMembership(){
   const tg = window.Telegram && Telegram.WebApp;
   if(!tg || !tg.initData) return;
   try{
-    const response = await fetch(MEMBERSHIP_API_BASE + '/ezzgame.rnkoroush.workers.dev', {
+    const response = await fetch(API_BASE + '/api/check-membership', {
       method: 'POST',
       headers: {'Content-Type':'application/json'},
       body: JSON.stringify({initData: tg.initData})
