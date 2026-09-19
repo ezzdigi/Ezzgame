@@ -1,0 +1,25 @@
+name = "ezzdigi-membership-server"
+main = "src/worker.js"
+compatibility_date = "2024-09-23"
+
+# Plain (non-secret) environment variables.
+# BOT_TOKEN is set separately as a secret — see README ("wrangler secret put BOT_TOKEN").
+[vars]
+CHANNEL_USERNAME = "@ezzdigii"
+ALLOWED_ORIGIN = "https://ezzgame.rnkoroush.workers.dev"
+INITDATA_MAX_AGE_SECONDS = "86400"
+REFERRAL_REWARD_COINS = "500"
+
+# D1 database for the leaderboard. Fill in database_id after running:
+#   wrangler d1 create ezzdigi_scores
+[[d1_databases]]
+binding = "DB"
+database_name = "ezzdigi_scores"
+database_id = "REPLACE_WITH_YOUR_D1_DATABASE_ID"
+
+# Optional: only needed if you want basic per-IP rate limiting on the
+# score-sync/leaderboard endpoints. Uncomment after running:
+#   wrangler kv namespace create RATE_LIMIT_KV
+# [[kv_namespaces]]
+# binding = "RATE_LIMIT_KV"
+# id = "REPLACE_WITH_YOUR_KV_NAMESPACE_ID"

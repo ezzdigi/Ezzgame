@@ -1,0 +1,8 @@
+ALTER TABLE scores ADD COLUMN is_member INTEGER NOT NULL DEFAULT 0;
+ALTER TABLE scores ADD COLUMN referral_count INTEGER NOT NULL DEFAULT 0;
+
+CREATE TABLE IF NOT EXISTS referrals (
+  new_user_id TEXT PRIMARY KEY,
+  referrer_id TEXT NOT NULL,
+  created_at  INTEGER NOT NULL
+);
